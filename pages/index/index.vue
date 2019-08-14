@@ -15,7 +15,7 @@
 			<view class="titleNview-background" :style="{backgroundColor:titleNViewBackground}"></view>
 			<swiper class="carousel" circular :autoplay=true @change="swiperChange">
 				<swiper-item v-for="(item, index) in carouselList" :key="index" class="carousel-item" @click="navToDetailPage({title: '轮播广告'})">
-					<image :src="item.src" />
+					<image :src="item.pic" />
 				</swiper-item>
 			</swiper>
 			<!-- 自定义swiper指示器 -->
@@ -27,25 +27,9 @@
 		</view>
 		<!-- 分类 -->
 		<view class="cate-section">
-			<view class="cate-item">
-				<image src="/static/temp/c3.png"></image>
-				<text>环球美食</text>
-			</view>
-			<view class="cate-item">
-				<image src="/static/temp/c5.png"></image>
-				<text>个护美妆</text>
-			</view>
-			<view class="cate-item">
-				<image src="/static/temp/c6.png"></image>
-				<text>营养保健</text>
-			</view>
-			<view class="cate-item">
-				<image src="/static/temp/c7.png"></image>
-				<text>家居厨卫</text>
-			</view>
-			<view class="cate-item">
-				<image src="/static/temp/c8.png"></image>
-				<text>速食生鲜</text>
+			<view class="cate-item" v-for="(item, index) in brandList" :key="index">
+				<image :src="item.logo"></image>
+				<text>{{item.name}}</text>
 			</view>
 		</view>
 		
@@ -71,7 +55,7 @@
 						@click="navToDetailPage(item)"
 					>
 						<image :src="item.pic" mode="aspectFill"></image>
-						<text class="title clamp">{{item.title}}</text>
+						<text class="title clamp">{{item.name}}</text>
 						<text class="price">￥{{item.price}}</text>
 					</view>
 				</view>
@@ -98,7 +82,7 @@
 					<view class="g-item left">
 						<image :src="item.pic" mode="aspectFill"></image>
 						<view class="t-box">
-							<text class="title clamp">{{item.title}}</text>
+							<text class="title clamp">{{item.name}}</text>
 							<view class="price-box">
 								<text class="price">￥{{item.price}}</text> 
 								<text class="m-price">￥188</text> 
@@ -114,9 +98,9 @@
 						            
 					</view>
 					<view class="g-item right">
-						<image :src="goodsList[index+1].image" mode="aspectFill"></image>
+						<image :src="goodsList[index+1].pic" mode="aspectFill"></image>
 						<view class="t-box">
-							<text class="title clamp">{{goodsList[index+1].title}}</text>
+							<text class="title clamp">{{goodsList[index+1].name}}</text>
 							<view class="price-box">
 								<text class="price">￥{{goodsList[index+1].price}}</text> 
 								<text class="m-price">￥188</text> 
@@ -201,7 +185,7 @@
 						@click="navToDetailPage(item)"
 					>
 						<image :src="item.pic" mode="aspectFill"></image>
-						<text class="title clamp">{{item.title}}</text>
+						<text class="title clamp">{{item.name}}</text>
 						<text class="price">￥{{item.price}}</text>
 					</view>
 					<view class="more">
@@ -231,7 +215,7 @@
 				<view class="image-wrapper">
 					<image :src="item.pic" mode="aspectFill"></image>
 				</view>
-				<text class="title clamp">{{item.title}}</text>
+				<text class="title clamp">{{item.name}}</text>
 				<text class="price">￥{{item.price}}</text>
 			</view>
 		</view>
@@ -247,14 +231,21 @@
 		data() {
 			return {
 				titleNViewBackground: '',
-				swiperCurrent: 0,
-				swiperLength: 0,
-				carouselList: [],
-				goodsList: []
+				swiperCurrent: 0,//当前轮播标签
+				swiperLength: 0,//轮播图大小
+				carouselList: [],//轮播图
+				goodsList: [],//猜你喜欢数据
+				brandList:[]
 			};
 		},
 
 		onLoad() {
+			console.log("onLoad")
+			this.loadData();
+		},
+		//下拉刷新
+		onPullDownRefresh(){
+			console.log("下拉刷新")
 			this.loadData();
 		},
 		methods: {
@@ -262,17 +253,38 @@
 			 * 请求静态数据只是为了代码不那么乱
 			 * 分次请求未作整合
 			 */
-			async loadData() {
-				let carouselList = await this.$api.json('carouselList');
-				this.titleNViewBackground = carouselList[0].background;
-				this.swiperLength = carouselList.length;
-				this.carouselList = carouselList;
+			loadData() {
+				uni.showLoading({
+				    title: '加载中'
+				});
+				var carouselList = [];
+				// this.titleNViewBackground = carouselList[0].background;
+				// this.swiperLength = carouselList.length;
+				// this.carouselList = carouselList;
+				
+				this.$request.senddata('/home/content','GET',{}).then(res => {
+									uni.hideLoading();
+									if(res.code == 200){
+										var alldata = res.data
+										this.carouselList = alldata.advertiseList;
+										this.swiperLength = carouselList.length;
+										this.titleNViewBackground = "rgb(203, 87, 60)";
+										this.brandList = alldata.brandList;
+										console.log(this.brandList)
+									}else{
+										this.$api.msg(res.data);
+										
+									}
+								}).catch(parmas => {
+									uni.hideLoading();
+									this.$api.msg("content出错了"+parmas);
+								})
 				
 				this.$request.senddata('/home/recommendProductList','GET',{
 					'pageSize':10,
 					'pageNum':1
 				}).then(res => {
-					
+					uni.hideLoading();
 					if(res.code == 200){
 						this.goodsList = res.data
 						console.log()
@@ -281,7 +293,8 @@
 						
 					}
 				}).catch(parmas => {
-					this.$api.msg("出错了");
+					uni.hideLoading();
+					this.$api.msg("recommendProductList出错了");
 				
 　　				})
 				
@@ -290,7 +303,7 @@
 			swiperChange(e) {
 				const index = e.detail.current;
 				this.swiperCurrent = index;
-				this.titleNViewBackground = this.carouselList[index].background;
+				this.titleNViewBackground = "rgb(203, 87, 60)";
 			},
 			//详情页
 			navToDetailPage(item) {
@@ -305,6 +318,7 @@
 		// 标题栏input搜索框点击
 		onNavigationBarSearchInputClicked: async function(e) {
 			this.$api.msg('点击了搜索框');
+			this.loadData();
 		},
 		//点击导航栏 buttons 时触发
 		onNavigationBarButtonTap(e) {
@@ -326,6 +340,7 @@
 			}
 		},
 		// #endif
+		
 	
 	}
 </script>
