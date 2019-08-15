@@ -112,6 +112,10 @@
       font-size: 26rpx;
       color: #909399;
       height: 50rpx;
+      overflow: hidden;
+      -o-text-overflow: ellipsis;
+         text-overflow: ellipsis;
+      white-space: nowrap;
       line-height: 50rpx;
 }
 .cart-item .item-right .price {

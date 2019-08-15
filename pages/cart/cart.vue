@@ -5,6 +5,7 @@
 			<image src="/static/emptyCart.jpg" mode="aspectFit"></image>
 			<view v-if="hasLogin" class="empty-tips">
 				空空如也
+				<view class="navigator" @click="loadData">刷新></view>
 				<navigator class="navigator" v-if="hasLogin" url="../index/index" open-type="switchTab">随便逛逛></navigator>
 			</view>
 			<view v-else class="empty-tips">
@@ -21,7 +22,7 @@
 						:class="{'b-b': index!==cartList.length-1}"
 					>
 						<view class="image-wrapper">
-							<image :src="item.image" 
+							<image :src="item.productPic" 
 								:class="[item.loaded]"
 								mode="aspectFill" 
 								lazy-load 
@@ -35,16 +36,16 @@
 							></view>
 						</view>
 						<view class="item-right">
-							<text class="clamp title">{{item.title}}</text>
-							<text class="attr">{{item.attr_val}}</text>
+							<text class="clamp title">{{item.productName}}</text>
+							<text class="attr">{{item.productSubTitle}}</text>
 							<text class="price">¥{{item.price}}</text>
 							<uni-number-box 
 								class="step"
 								:min="1" 
 								:max="item.stock"
-								:value="item.number>item.stock?item.stock:item.number"
-								:isMax="item.number>=item.stock?true:false"
-								:isMin="item.number===1"
+								:value="item.quantity>item.stock?item.stock:item.quantity"
+								:isMax="item.quantity>=item.stock?true:false"
+								:isMin="item.quantity===1"
 								:index="index"
 								@eventChange="numberChange"
 							></uni-number-box>
@@ -114,13 +115,35 @@
 		methods: {
 			//请求数据
 			async loadData(){
-				let list = await this.$api.json('cartList'); 
-				let cartList = list.map(item=>{
-					item.checked = true;
-					return item;
+				uni.showLoading({
+				    title: '加载中'
 				});
-				this.cartList = cartList;
-				this.calcTotal();  //计算总价
+				this.$request.senddata('/cart/list','GET',{}).then(res => {
+									uni.hideLoading();
+									if(res.code == 200){
+										let list = res.data
+										let cartList = list.map(item=>{
+											item.checked = true;
+											item.stock = 10;
+											return item;
+										});
+										this.cartList = cartList;
+										this.calcTotal();  //计算总价
+									}else{
+										this.$api.msg(res.data);
+										
+									}
+								}).catch(parmas => {
+									uni.hideLoading();
+									this.$api.msg("content出错了"+parmas);
+								})
+				// let list = await this.$api.json('cartList'); 
+				// let cartList = list.map(item=>{
+				// 	item.checked = true;
+				// 	return item;
+				// });
+				// this.cartList = cartList;
+				// this.calcTotal();  //计算总价
 			},
 			//监听image加载完成
 			onImageLoad(key, index) {
@@ -151,7 +174,7 @@
 			},
 			//数量
 			numberChange(data){
-				this.cartList[data.index].number = data.number;
+				this.cartList[data.index].quantity = data.quantity;
 				this.calcTotal();
 			},
 			//删除
@@ -186,7 +209,7 @@
 				let checked = true;
 				list.forEach(item=>{
 					if(item.checked === true){
-						total += item.price * item.number;
+						total += item.price * item.quantity;
 					}else if(checked === true){
 						checked = false;
 					}
@@ -202,7 +225,7 @@
 					if(item.checked){
 						goodsData.push({
 							attr_val: item.attr_val,
-							number: item.number
+							number: item.quantity
 						})
 					}
 				})
@@ -293,6 +316,9 @@
 				font-size: $font-sm + 2upx;
 				color: $font-color-light;
 				height: 50upx;
+				overflow: hidden;
+				text-overflow:ellipsis;
+				white-space: nowrap;
 				line-height: 50upx;
 			}
 			.price{

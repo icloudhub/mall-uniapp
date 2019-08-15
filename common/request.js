@@ -28,8 +28,11 @@ request.senddata = (url, method, data) => {
     //         break;
     // }
     headers["content-type"]='application/x-www-form-urlencoded'
-	
-	// headers['Authorization'] = 'Basic a3N1ZGlfcGM6a3N1ZGlfcGM='
+	let userInfo = uni.getStorageSync('userInfo') || '';
+	if(userInfo.token){
+		headers['Authorization'] = userInfo.token
+	}
+
     return uni.request({
         url: urlConfig + url,
         method,
