@@ -5,7 +5,7 @@
 			<image src="/static/emptyCart.jpg" mode="aspectFit"></image>
 			<view v-if="hasLogin" class="empty-tips">
 				空空如也
-				<view class="navigator" @click="loadData">刷新></view>
+				<view class="navigator" @click="loadData">刷新</view>
 				<navigator class="navigator" v-if="hasLogin" url="../index/index" open-type="switchTab">随便逛逛></navigator>
 			</view>
 			<view v-else class="empty-tips">

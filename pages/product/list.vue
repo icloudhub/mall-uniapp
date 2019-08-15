@@ -1,17 +1,17 @@
 <template>
 	<view class="content">
 		<view class="navbar" :style="{position:headerPosition,top:headerTop}">
-			<view class="nav-item" :class="{current: filterIndex === 0}" @click="tabClick(0)">
+			<view class="nav-item" :class="{current: searchdata.sort === 0}" @click="tabClick(0)">
 				综合排序
 			</view>
-			<view class="nav-item" :class="{current: filterIndex === 1}" @click="tabClick(1)">
+			<view class="nav-item" :class="{current: searchdata.sort === 2}" @click="tabClick(2)">
 				销量优先
 			</view>
-			<view class="nav-item" :class="{current: filterIndex === 2}" @click="tabClick(2)">
+			<view class="nav-item" :class="{current: searchdata.sort === 3}" @click="tabClick(3)">
 				<text>价格</text>
 				<view class="p-box">
-					<text :class="{active: priceOrder === 1 && filterIndex === 2}" class="yticon icon-shang"></text>
-					<text :class="{active: priceOrder === 2 && filterIndex === 2}" class="yticon icon-shang xia"></text>
+					<text :class="{active: priceOrder === 1 && searchdata.sort === 2}" class="yticon icon-shang"></text>
+					<text :class="{active: priceOrder === 2 && searchdata.sort === 2}" class="yticon icon-shang xia"></text>
 				</view>
 			</view>
 			<text class="cate-item yticon icon-fenlei1" @click="toggleCateMask('show')"></text>
@@ -23,12 +23,12 @@
 				@click="navToDetailPage(item)"
 			>
 				<view class="image-wrapper">
-					<image :src="item.image" mode="aspectFill"></image>
+					<image :src="item.pic" mode="aspectFill"></image>
 				</view>
-				<text class="title clamp">{{item.title}}</text>
+				<text class="title clamp">{{item.name}}</text>
 				<view class="price-box">
 					<text class="price">{{item.price}}</text>
-					<text>已售 {{item.sales}}</text>
+					<text>已售 {{item.sale}}</text>
 				</view>
 			</view>
 		</view>
@@ -66,11 +66,19 @@
 				headerPosition:"fixed",
 				headerTop:"0px",
 				loadingType: 'more', //加载更多状态
-				filterIndex: 0, 
 				cateId: 0, //已选三级分类id
 				priceOrder: 0, //1 价格从低到高 2价格从高到低
 				cateList: [],
-				goodsList: []
+				goodsList: [],
+				searchdata:{
+					keyword:"",
+					brandId:"",
+					productCategoryId:'',
+					sort:0,//排序字段:0->按相关度；1->按新品；2->按销量；3->价格从低到高；4->价格从高到低
+					pageNum:0,
+					pageSize:5,
+					total:0
+				}
 			};
 		},
 		
@@ -92,10 +100,12 @@
 		},
 		//下拉刷新
 		onPullDownRefresh(){
+			this.searchdata.pageNum = 0;
 			this.loadData('refresh');
 		},
 		//加载更多
 		onReachBottom(){
+			this.searchdata.pageNum++;
 			this.loadData();
 		},
 		methods: {
@@ -121,49 +131,51 @@
 				}else{
 					this.loadingType = 'more'
 				}
-				
-				let goodsList = await this.$api.json('goodsList');
-				if(type === 'refresh'){
-					this.goodsList = [];
-				}
-				//筛选，测试数据直接前端筛选了
-				if(this.filterIndex === 1){
-					goodsList.sort((a,b)=>b.sales - a.sales)
-				}
-				if(this.filterIndex === 2){
-					goodsList.sort((a,b)=>{
-						if(this.priceOrder == 1){
-							return a.price - b.price;
-						}
-						return b.price - a.price;
-					})
-				}
-				
-				this.goodsList = this.goodsList.concat(goodsList);
-				
-				//判断是否还有下一页，有是more  没有是nomore(测试数据判断大于20就没有了)
-				this.loadingType  = this.goodsList.length > 20 ? 'nomore' : 'more';
-				if(type === 'refresh'){
-					if(loading == 1){
-						uni.hideLoading()
-					}else{
-						uni.stopPullDownRefresh();
-					}
-				}
+				this.$request.searchdata('/esProduct/search','GET',this.searchdata).then(res => {
+								
+									if(res.code == 200){
+										if(type === 'refresh'){
+											this.goodsList = [];
+										}
+										this.searchdata.total = res.data.total;
+										this.goodsList = this.goodsList.concat(res.data.list);
+										this.loadingType  = this.goodsList.length >= this.searchdata.total ? 'nomore' : 'more';
+										if(type === 'refresh'){
+											if(loading == 1){
+												uni.hideLoading()
+											}else{
+												uni.stopPullDownRefresh();
+											}
+										}
+									}else{
+										this.$api.msg(res.data);
+									}
+								}).catch(parmas => {
+									uni.hideLoading()
+									this.$api.msg("出错了");
+				　　				})
+
 			},
 			//筛选点击
 			tabClick(index){
 				if(this.filterIndex === index && index !== 2){
 					return;
 				}
-				this.filterIndex = index;
-				if(index === 2){
-					this.priceOrder = this.priceOrder === 1 ? 2: 1;
+				this.searchdata.pageNum = 0;
+				this.searchdata.sort = index;
+				if(index === 3){
+					if(this.priceOrder === 1){
+						this.priceOrder = 2;
+						this.searchdata.sort = 3;
+					}else{
+						this.priceOrder = 1;
+						this.searchdata.sort = 4;
+					}
 				}else{
 					this.priceOrder = 0;
 				}
 				uni.pageScrollTo({
-					duration: 300,
+					duration: 0,
 					scrollTop: 0
 				})
 				this.loadData('refresh', 1);
