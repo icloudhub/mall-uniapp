@@ -14,7 +14,7 @@
 			<!-- 背景色区域 -->
 			<view class="titleNview-background" :style="{backgroundColor:titleNViewBackground}"></view>
 			<swiper class="carousel" circular :autoplay=true @change="swiperChange">
-				<swiper-item v-for="(item, index) in carouselList" :key="index" class="carousel-item" @click="navToDetailPage({title: '轮播广告'})">
+				<swiper-item v-for="(item, index) in centdata.advertiseList" :key="index" class="carousel-item" @click="navToDetailPage({title: '轮播广告'})">
 					<image :src="item.pic" />
 				</swiper-item>
 			</swiper>
@@ -22,12 +22,12 @@
 			<view class="swiper-dots">
 				<text class="num">{{swiperCurrent+1}}</text>
 				<text class="sign">/</text>
-				<text class="num">{{swiperLength}}</text>
+				<text class="num">{{centdata.advertiseList.length}}</text>
 			</view>
 		</view>
 		<!-- 分类 -->
 		<view class="cate-section">
-			<view class="cate-item" v-for="(item, index) in brandList" :key="index">
+			<view class="cate-item" v-for="(item, index) in centdata.brandList" :key="index">
 				<image :src="item.logo"></image>
 				<text>{{item.name}}</text>
 			</view>
@@ -50,7 +50,7 @@
 			<scroll-view class="floor-list" scroll-x>
 				<view class="scoll-wrapper">
 					<view 
-						v-for="(item, index) in goodsList" :key="index"
+						v-for="(item, index) in centdata.homeFlashPromotion" :key="index"
 						class="floor-item"
 						@click="navToDetailPage(item)"
 					>
@@ -62,20 +62,20 @@
 			</scroll-view>
 		</view>
 		
-		<!-- 团购楼层 -->
+		<!-- 新品推荐 -->
 		<view class="f-header m-t">
 			<image src="/static/temp/h1.png"></image>
 			<view class="tit-box">
-				<text class="tit">精品团购</text>
+				<text class="tit">{{'新品推荐'+centdata.newProductList.length}}</text>
 				<text class="tit2">Boutique Group Buying</text>
 			</view>
 			<text class="yticon icon-you"></text>
 		</view>
-		<view class="group-section">
+		<view class="group-section"> 
 			<swiper class="g-swiper" :duration="500">
 				<swiper-item
 					class="g-swiper-item"
-					v-for="(item, index) in goodsList" :key="index"
+					v-for="(item, index) in centdata.newProductList" :key="index"
 					v-if="index%2 === 0"
 					@click="navToDetailPage(item)"
 				>
@@ -117,14 +117,12 @@
 
 			</swiper>
 		</view>
-		
-		
-		
+
 		<!-- 分类推荐楼层 -->
 		<view class="f-header m-t">
 			<image src="/static/temp/h1.png"></image>
 			<view class="tit-box">
-				<text class="tit">分类精选</text>
+				<text class="tit">人气推荐</text>
 				<text class="tit2">Competitive Products For You</text>
 			</view>
 			<text class="yticon icon-you"></text>
@@ -136,7 +134,7 @@
 			<scroll-view class="floor-list" scroll-x>
 				<view class="scoll-wrapper">
 					<view 
-						v-for="(item, index) in goodsList" :key="index"
+						v-for="(item, index) in centdata.hotProductList" :key="index"
 						class="floor-item"
 						@click="navToDetailPage(item)"
 					>
@@ -173,20 +171,20 @@
 				</view>
 			</scroll-view>
 		</view>
-		<view class="hot-floor">
+		<view class="hot-floor"> 
 			<view class="floor-img-box">
 				<image class="floor-img" src="https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1553409794730&di=12b840ec4f5748ef06880b85ff63e34e&imgtype=0&src=http%3A%2F%2Fimg.zcool.cn%2Fcommunity%2F01dc03589ed568a8012060c82ac03c.jpg%40900w_1l_2o_100sh.jpg" mode="scaleToFill"></image>
 			</view>
 			<scroll-view class="floor-list" scroll-x>
 				<view class="scoll-wrapper">
 					<view 
-						v-for="(item, index) in goodsList" :key="index"
+						v-for="(item, index) in centdata.subjectList" :key="index"
 						class="floor-item"
 						@click="navToDetailPage(item)"
 					>
 						<image :src="item.pic" mode="aspectFill"></image>
-						<text class="title clamp">{{item.name}}</text>
-						<text class="price">￥{{item.price}}</text>
+						<text class="title clamp">{{item.categoryName}}</text>
+						<!-- <text class="price">{{item.title}}</text> -->
 					</view>
 					<view class="more">
 						<text>查看全部</text>
@@ -230,12 +228,18 @@
 
 		data() {
 			return {
-				titleNViewBackground: '',
+				titleNViewBackground: "rgb(60, 203, 196)",
+				centdata:{
+					advertiseList: [],//轮播图
+					brandList:[],//功能表
+					homeFlashPromotion:[],//秒杀
+					newProductList:[],//新品推荐
+					hotProductList:[],//人气推荐
+					subjectList:[]//专题推荐
+				},
 				swiperCurrent: 0,//当前轮播标签
-				swiperLength: 0,//轮播图大小
-				carouselList: [],//轮播图
 				goodsList: [],//猜你喜欢数据
-				brandList:[]
+				
 			};
 		},
 
@@ -257,20 +261,10 @@
 				uni.showLoading({
 				    title: '加载中'
 				});
-				var carouselList = [];
-				// this.titleNViewBackground = carouselList[0].background;
-				// this.swiperLength = carouselList.length;
-				// this.carouselList = carouselList;
-				
 				this.$request.senddata('/home/content','GET',{}).then(res => {
 									uni.hideLoading();
 									if(res.code == 200){
-										var alldata = res.data
-										this.carouselList = alldata.advertiseList;
-										this.swiperLength = carouselList.length;
-										this.titleNViewBackground = "rgb(203, 87, 60)";
-										this.brandList = alldata.brandList;
-										console.log(this.brandList)
+										this.centdata = res.data
 									}else{
 										this.$api.msg(res.data);
 										
@@ -303,7 +297,7 @@
 			swiperChange(e) {
 				const index = e.detail.current;
 				this.swiperCurrent = index;
-				this.titleNViewBackground = "rgb(203, 87, 60)";
+				this.titleNViewBackground = "rgb(60, 203, 196)";
 			},
 			//详情页
 			navToDetailPage(item) {

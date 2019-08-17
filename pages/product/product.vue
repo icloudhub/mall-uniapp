@@ -5,7 +5,7 @@
 				<swiper-item class="swiper-item" v-for="(item,index) in imgList" :key="index">
 					<view class="image-wrapper">
 						<image
-							:src="item.src" 
+							:src="item" 
 							class="loaded" 
 							mode="aspectFill"
 						></image>
@@ -15,16 +15,16 @@
 		</view>
 		
 		<view class="introduce-section">
-			<text class="title">恒源祥2019春季长袖白色t恤 新款春装</text>
+			<text class="title">{{goodsdata.name}}</text>
 			<view class="price-box">
 				<text class="price-tip">¥</text>
 				<text class="price">341.6</text>
-				<text class="m-price">¥488</text>
+				<text class="m-price">¥{{goodsdata.originalPrice}}</text>
 				<text class="coupon-tip">7折</text>
 			</view>
 			<view class="bot-row">
-				<text>销量: 108</text>
-				<text>库存: 4690</text>
+				<text>销量: {{goodsdata.sale}}</text>
+				<text>库存: {{goodsdata.stock}}</text>
 				<text>浏览量: 768</text>
 			</view>
 		</view>
@@ -71,8 +71,7 @@
 			<view class="c-row b-b">
 				<text class="tit">服务</text>
 				<view class="bz-list con">
-					<text>7天无理由退换货 ·</text>
-					<text>假一赔十 ·</text>
+					<text v-for='(item,index) in goodsdata.serviceIds.split(",")' :key="index" >7天无理由退换货{{item}} ·</text>
 				</view>
 			</view>
 		</view>
@@ -102,7 +101,7 @@
 			<view class="d-header">
 				<text>图文详情</text>
 			</view>
-			<rich-text :nodes="desc"></rich-text>
+			<rich-text :nodes="goodsdata.detailMobileHtml"></rich-text>
 		</view>
 		
 		<!-- 底部操作菜单 -->
@@ -186,20 +185,10 @@
 			return {
 				specClass: 'none',
 				specSelected:[],
-				
+				goodsdata:{},
 				favorite: true,
 				shareList: [],
-				imgList: [
-					{
-						src: 'https://gd3.alicdn.com/imgextra/i3/0/O1CN01IiyFQI1UGShoFKt1O_!!0-item_pic.jpg_400x400.jpg'
-					},
-					{
-						src: 'https://gd3.alicdn.com/imgextra/i3/TB1RPFPPFXXXXcNXpXXXXXXXXXX_!!0-item_pic.jpg_400x400.jpg'
-					},
-					{
-						src: 'https://gd2.alicdn.com/imgextra/i2/38832490/O1CN01IYq7gu1UGShvbEFnd_!!38832490.jpg_400x400.jpg'
-					}
-				],
+				imgList: [],
 				desc: `
 					<div style="width:100%">
 						<img style="width:100%;display:block;" src="https://gd3.alicdn.com/imgextra/i4/479184430/O1CN01nCpuLc1iaz4bcSN17_!!479184430.jpg_400x400.jpg" />
@@ -274,9 +263,8 @@
 			let id = options.id;
 			if(id){
 				this.$api.msg(`点击了${id}`);
+				this.getgoodsdata(id)
 			}
-			
-			
 			//规格 默认选中第一条
 			this.specList.forEach(item=>{
 				for(let cItem of this.specChildList){
@@ -337,6 +325,20 @@
 				uni.navigateTo({
 					url: `/pages/order/createOrder`
 				})
+			},
+			getgoodsdata(id){
+				this.$request.senddata('/product/productInfo/'+id, 'GET',{}).then(res => {
+										if(res.code == 200){
+											this.goodsdata = res.data
+											this.imgList = this.goodsdata.albumPics.split(",")
+											console.log('{imgList:}'+JSON.stringify(this.imgList));
+										}else{
+											this.$api.msg(res.data);
+										}
+									}).catch(parmas => {
+										uni.hideLoading()
+										this.$api.msg("出错了");
+					　　				})
 			},
 			stopPrevent(){}
 		},

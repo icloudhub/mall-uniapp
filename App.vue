@@ -10,9 +10,11 @@
 			...mapMutations(['login'])
 		},
 		onLaunch: function() {
+			console.log('onLaunch')
 			let userInfo = uni.getStorageSync('userInfo') || '';
-			if(userInfo.id){
+			if(userInfo.token){
 				//更新登陆状态
+				console.log('更新登陆状态')
 				uni.getStorage({
 					key: 'userInfo',
 					success: (res) => {
