@@ -18,10 +18,10 @@ request.senddata = (url, method, data) => {
         data: data,
         header: headers
     }).then(res => {
-		console.log('【Y】'+method+'|'+urlConfig + url+'|'+JSON.stringify(headers)+'|'+JSON.stringify(data)+'|'+JSON.stringify(res))
+		console.log('【Y】'+method+'\n|'+urlConfig + url+'\n|'+JSON.stringify(headers)+'\n|'+JSON.stringify(data)+'\n|'+JSON.stringify(res))
 		return res[1].data; 
     }).catch(parmas => {
-		console.log('【N】'+method+'|'+urlConfig + url+'|'+JSON.stringify(headers)+'|'+JSON.stringify(parmas))
+		console.log('【N】'+method+'\n|'+urlConfig + url+'\n|'+JSON.stringify(headers)+'\n|'+JSON.stringify(parmas))
 　　　　　　switch (parmas.code) {
 　　　　　　　　case 401:
 　　　　　　　　　　uni.clearStorageSync()
@@ -55,10 +55,10 @@ request.senddata = (url, method, data) => {
          data: data,
          header: headers
      }).then(res => {
- 		console.log('【Y】'+method+'|'+searchurl + url+'|'+JSON.stringify(headers)+'|'+JSON.stringify(data)+'|'+JSON.stringify(res))
+ 		console.log('【Y】'+method+'\n|'+searchurl + url+'\n|'+JSON.stringify(headers)+'\n|'+JSON.stringify(data)+'\n|'+JSON.stringify(res))
  		return res[1].data; 
      }).catch(parmas => {
- 		console.log('【N】'+method+'|'+searchurl + url+'|'+JSON.stringify(headers)+'|'+JSON.stringify(parmas))
+ 		console.log('【N】'+method+'\n|'+searchurl + url+'\n|'+JSON.stringify(headers)+'\n|'+JSON.stringify(parmas))
  　　　　　　switch (parmas.code) {
  　　　　　　　　case 401:
  　　　　　　　　　　uni.clearStorageSync()
