@@ -97,8 +97,10 @@
 				cartList: [],
 			};
 		},
-		onLoad(){
-			this.loadData();
+		//下拉刷新
+		onPullDownRefresh(){
+			console.log("下拉刷新来了")
+			this.loadData()
 		},
 		watch:{
 			//显示空白页
@@ -119,6 +121,7 @@
 				    title: '加载中'
 				});
 				this.$request.senddata('/cart/list','GET',{}).then(res => {
+									uni.stopPullDownRefresh();
 									uni.hideLoading();
 									if(res.code == 200){
 										let list = res.data
@@ -136,6 +139,7 @@
 								}).catch(parmas => {
 									uni.hideLoading();
 									this.$api.msg("content出错了"+parmas);
+									uni.stopPullDownRefresh();
 								})
 				// let list = await this.$api.json('cartList'); 
 				// let cartList = list.map(item=>{

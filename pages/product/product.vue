@@ -1,8 +1,8 @@
 <template>
 	<view class="container">
 		<view class="carousel">
-			<swiper indicator-dots circular=true duration="400">
-				<swiper-item class="swiper-item" v-for="(item,index) in imgList" :key="index">
+			<swiper indicator-dots circular=true duration="400" v-if="goodsdata.albumPics">
+				<swiper-item class="swiper-item" v-for='(item,index) in goodsdata.albumPics.split(",")' :key="index">
 					<view class="image-wrapper">
 						<image
 							:src="item" 
@@ -70,8 +70,8 @@
 			</view>
 			<view class="c-row b-b">
 				<text class="tit">服务</text>
-				<view class="bz-list con">
-					<text v-for='(item,index) in goodsdata.serviceIds.split(",")' :key="index" >7天无理由退换货{{item}} ·</text>
+				<view class="con-list" v-if="goodsdata.serviceIds">
+					<text v-for='(item,index) in goodsdata.serviceIds.split(",")' :key="index" >7天无理由退换货{{item}}</text>
 				</view>
 			</view>
 		</view>
@@ -149,8 +149,8 @@
 						</view>
 					</view>
 				</view>
-				<view v-for="(item,index) in specList" :key="index" class="attr-list">
-					<text>{{item.name}}</text>
+				<view v-for='(item,index) in specList' :key="index" class="attr-list">
+					<text>{{item.name +":"+ index}} </text>
 					<view class="item-list">
 						<text 
 							v-for="(childItem, childIndex) in specChildList" 
@@ -189,16 +189,7 @@
 				favorite: true,
 				shareList: [],
 				imgList: [],
-				specList: [
-					{
-						id: 1,
-						name: '尺寸',
-					},
-					{	
-						id: 2,
-						name: '颜色',
-					},
-				],
+				specList: [{},{}],
 				specChildList: [
 					{
 						id: 1,
@@ -254,18 +245,19 @@
 			let id = options.id;
 			if(id){
 				this.$api.msg(`点击了${id}`);
+				this.getProduct(id)
 				this.getgoodsdata(id)
 			}
 			//规格 默认选中第一条
-			this.specList.forEach(item=>{
-				for(let cItem of this.specChildList){
-					if(cItem.pid === item.id){
-						this.$set(cItem, 'selected', true);
-						this.specSelected.push(cItem);
-						break; //forEach不能使用break
-					}
-				}
-			})
+			// this.specList.forEach(item=>{
+			// 	for(let cItem of this.specChildList){
+			// 		if(cItem.pid === item.id){
+			// 			this.$set(cItem, 'selected', true);
+			// 			this.specSelected.push(cItem);
+			// 			break; //forEach不能使用break
+			// 		}
+			// 	}
+			// })
 			this.shareList = await this.$api.json('shareList');
 		},
 		methods:{
@@ -321,20 +313,72 @@
 				this.$request.senddata('/product/productInfo/'+id, 'GET',{}).then(res => {
 										if(res.code == 200){
 											this.goodsdata = res.data
-											this.imgList = this.goodsdata.albumPics.split(",")
-											console.log('{imgList:}'+JSON.stringify(this.imgList));
 										}else{
 											this.$api.msg(res.data);
 										}
 									}).catch(parmas => {
 										uni.hideLoading()
-										this.$api.msg("出错了");
+										this.$api.msg("出错了"+JSON.stringify(parmas));
+					　　				})
+			},
+			getProduct(id){
+				//获取某个商品的规格,用于重选规格
+				this.$request.senddata('/cart/getProduct/'+id, 'GET',{}).then(res => {
+										if(res.code == 200){
+											this.specList = res.data.productAttributeList;
+											var chlist = new Set()
+											console.log("{this.specList begin}:"+this.specList[0].name)
+											this.specList.forEach(item=>{
+											
+												res.data.skuStockList.forEach(citem=>{
+											
+													if(this.specList.indexOf(item) ==0){
+													
+														let temdata = {
+																	pid: item.id,
+																	name: citem.sp1,
+																}
+														var ishas = false
+														chlist.forEach(setitem=>{
+															if(setitem.pid == temdata.pid && setitem.name == temdata.name){
+																ishas = true;
+															}
+														})
+														if(!ishas){
+															chlist.add(temdata)
+														}
+											
+													}else{
+														let temdata = {
+																	pid: item.id,
+																	name: citem.sp2,
+																}
+														var ishas = false
+														chlist.forEach(setitem=>{
+															if(setitem.pid == temdata.pid && setitem.name == temdata.name){
+																ishas = true;
+															}
+														})
+														if(!ishas){
+															chlist.add(temdata)
+														}
+													}
+												})
+											})
+									
+											this.specChildList = chlist;
+											console.log("{this.specList}:"+JSON.stringify(this.specChildList) )
+										}else{
+											this.$api.msg(res.data);
+										}
+									}).catch(parmas => {
+										uni.hideLoading()
+										this.$api.msg("出错了"+JSON.stringify(parmas));
 					　　				})
 			},
 			stopPrevent(){},
 			addcar(){
 				//添加到购物车
-				
 			}
 		},
 

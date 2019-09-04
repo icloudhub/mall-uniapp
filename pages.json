@@ -65,7 +65,8 @@
 		}, {
 			"path": "pages/cart/cart",
 			"style": {
-				"navigationBarTitleText": "购物车"
+				"navigationBarTitleText": "购物车",
+				"enablePullDownRefresh": true
 			}
 		}, {
 			"path": "pages/public/login",
@@ -206,6 +207,7 @@
 				"pagePath": "pages/cart/cart",
 				"iconPath": "static/tab-cart.png",
 				"selectedIconPath": "static/tab-cart-current.png",
+				"enablePullDownRefresh": true,
 				"text": "购物车"
 			},
 			{
