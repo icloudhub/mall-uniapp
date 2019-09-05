@@ -130,6 +130,8 @@
 		class="popup spec"
 		:class="specClass"
 		:productid="productid"
+		:product="goodsdata"
+		v-on:click="addcar(selectsku)"
 		>
 			
 		</SpecList>
@@ -176,19 +178,8 @@
 			this.productid= options.id;
 			if(this.productid){
 				this.$api.msg(`点击了${this.productid}`);
-				this.getProduct(this.productid)
 				this.getgoodsdata(this.productid)
 			}
-			//规格 默认选中第一条
-			// this.specList.forEach(item=>{
-			// 	for(let cItem of this.specChildList){
-			// 		if(cItem.pid === item.id){
-			// 			this.$set(cItem, 'selected', true);
-			// 			this.specSelected.push(cItem);
-			// 			break; //forEach不能使用break
-			// 		}
-			// 	}
-			// })
 			this.shareList = await this.$api.json('shareList');
 		},
 		methods:{
@@ -203,30 +194,7 @@
 					this.specClass = 'show';
 				}
 			},
-			//选择规格
-			selectSpec(index, pid){
-				let list = this.specChildList;
-				list.forEach(item=>{
-					if(item.pid === pid){
-						this.$set(item, 'selected', false);
-					}
-				})
-
-				this.$set(list[index], 'selected', true);
-				//存储已选择
-				/**
-				 * 修复选择规格存储错误
-				 * 将这几行代码替换即可
-				 * 选择的规格存放在specSelected中
-				 */
-				this.specSelected = []; 
-				list.forEach(item=>{ 
-					if(item.selected === true){ 
-						this.specSelected.push(item); 
-					} 
-				})
-				
-			},
+			
 			//分享
 			share(){
 				this.$refs.share.toggleMask();	
@@ -252,64 +220,9 @@
 										this.$api.msg("出错了"+JSON.stringify(parmas));
 					　　				})
 			},
-			getProduct(id){
-				//获取某个商品的规格,用于重选规格
-				this.$request.senddata('/cart/getProduct/'+id, 'GET',{}).then(res => {
-										if(res.code == 200){
-											this.specList = res.data.productAttributeList;
-											var chlist = new Set()
-											console.log("{this.specList begin}:"+this.specList[0].name)
-											this.specList.forEach(item=>{
-											
-												res.data.skuStockList.forEach(citem=>{
-											
-													if(this.specList.indexOf(item) ==0){
-													
-														let temdata = {
-																	pid: item.id,
-																	name: citem.sp1,
-																}
-														var ishas = false
-														chlist.forEach(setitem=>{
-															if(setitem.pid == temdata.pid && setitem.name == temdata.name){
-																ishas = true;
-															}
-														})
-														if(!ishas){
-															chlist.add(temdata)
-														}
-											
-													}else{
-														let temdata = {
-																	pid: item.id,
-																	name: citem.sp2,
-																}
-														var ishas = false
-														chlist.forEach(setitem=>{
-															if(setitem.pid == temdata.pid && setitem.name == temdata.name){
-																ishas = true;
-															}
-														})
-														if(!ishas){
-															chlist.add(temdata)
-														}
-													}
-												})
-											})
-									
-											this.specChildList = chlist;
-											console.log("{this.specList}:"+JSON.stringify(this.specChildList) )
-										}else{
-											this.$api.msg(res.data);
-										}
-									}).catch(parmas => {
-										uni.hideLoading()
-										this.$api.msg("出错了"+JSON.stringify(parmas));
-					　　				})
-			},
 			stopPrevent(){},
-			addcar(){
-				//添加到购物车
+			addcar(selectsku){
+				console.log(JSON.stringify(selectsku));
 			}
 		},
 

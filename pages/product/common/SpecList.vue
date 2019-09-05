@@ -6,7 +6,7 @@
 		<view class="mask"></view>
 		<view class="layer attr-content" @click.stop="stopPrevent">
 			<view class="a-t">
-				<image src="https://gd3.alicdn.com/imgextra/i3/0/O1CN01IiyFQI1UGShoFKt1O_!!0-item_pic.jpg_400x400.jpg"></image>
+				<image :src="selectsku.pic"></image>
 				<view class="right">
 					<text class="price">¥328.00</text>
 					<text class="stock">库存：188件</text>
@@ -48,8 +48,10 @@
 					</text>
 				</view>
 			</view>
-		
-			<button class="btn" @click="getProduct(productid)">完成</button>
+			<view class="action-btn-group">
+				<button type="primary" class=" action-btn no-border buy-now-btn" @click="getProduct(productid)">立即购买</button>
+				<button type="primary" class=" action-btn no-border add-cart-btn" @click="addcar" >加入购物车</button>
+			</view>
 		</view>
 	</view>
 </template>
@@ -58,7 +60,7 @@
 	import uniNumberBox from '@/components/uni-number-box.vue'
 	export default {
 		
-	    props: ['productid'],
+	    props: ['productid','product'],
 		components: {
 			uniNumberBox
 		},
@@ -73,7 +75,6 @@
 				skuList:[],
 				selectsku:{},
 				specChildList: []
-				
 			}
 		},
 		watch:{
@@ -111,7 +112,17 @@
 				this.$set(list[index], 'selected', true);
 				this.getselectsku()
 			},
-			
+			//添加购物车
+			addcar(){
+		
+				this.$emit('addcar', this.selectsku);
+			},
+			//立即购买
+			buynow(){
+				
+				this.$emit('buynow', this.selectsku);
+			},
+			// 获取商品规格
 			getProduct(id){
 				//获取某个商品的规格,用于重选规格
 				this.$request.senddata('/cart/getProduct/'+id, 'GET',{}).then(res => {
@@ -167,6 +178,11 @@
 						this.selectsku = item;
 					}
 				)
+				if(!this.selectsku.pic){
+					console.log(JSON.stringify(this.product))
+					this.selectsku.pic = this.product.pic.split(",")[0]
+				}
+				
 				
 			}
 		}
@@ -274,6 +290,40 @@
 			margin-left: -30upx;
 		}
 	}
+	
+	.action-btn-group{
+			display: flex;
+			height: 76upx;
+			border-radius: 100px;
+			overflow: hidden;
+			box-shadow: 0 20upx 40upx -16upx #fa436a;
+			box-shadow: 1px 2px 5px rgba(219, 63, 96, 0.4);
+			background: linear-gradient(to right, #ffac30,#fa436a,#F56C6C);
+			margin-left: 20upx;
+			position:relative;
+			&:after{
+				content: '';
+				position:absolute;
+				top: 50%;
+				right: 50%;
+				transform: translateY(-50%);
+				height: 28upx;
+				width: 0;
+				border-right: 1px solid rgba(255,255,255,.5);
+			}
+			.action-btn{
+				display:flex;
+				align-items: center;
+				justify-content: center;
+				width: 180upx;
+				height: 100%;
+				font-size: $font-base ;
+				padding: 0;
+				border-radius: 0;
+				background: transparent;
+			}
+		}
+	
 	
 
 </style>
