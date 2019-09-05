@@ -124,48 +124,15 @@
 				<button type="primary" class=" action-btn no-border add-cart-btn" @click="addcar" >加入购物车</button>
 			</view>
 		</view>
-		
-		
-		<!-- 规格-模态层弹窗 -->
-		<view 
-			class="popup spec" 
-			:class="specClass"
-			@touchmove.stop.prevent="stopPrevent"
-			@click="toggleSpec"
+
+		<SpecList
+		ref="SpecList" 
+		class="popup spec"
+		:class="specClass"
+		:productid="productid"
 		>
-			<!-- 遮罩层 -->
-			<view class="mask"></view>
-			<view class="layer attr-content" @click.stop="stopPrevent">
-				<view class="a-t">
-					<image src="https://gd3.alicdn.com/imgextra/i3/0/O1CN01IiyFQI1UGShoFKt1O_!!0-item_pic.jpg_400x400.jpg"></image>
-					<view class="right">
-						<text class="price">¥328.00</text>
-						<text class="stock">库存：188件</text>
-						<view class="selected">
-							已选：
-							<text class="selected-text" v-for="(sItem, sIndex) in specSelected" :key="sIndex">
-								{{sItem.name}}
-							</text>
-						</view>
-					</view>
-				</view>
-				<view v-for='(item,index) in specList' :key="index" class="attr-list">
-					<text>{{item.name +":"+ index}} </text>
-					<view class="item-list">
-						<text 
-							v-for="(childItem, childIndex) in specChildList" 
-							v-if="childItem.pid === item.id"
-							:key="childIndex" class="tit"
-							:class="{selected: childItem.selected}"
-							@click="selectSpec(childIndex, childItem.pid)"
-						>
-							{{childItem.name}}
-						</text>
-					</view>
-				</view>
-				<button class="btn" @click="toggleSpec">完成</button>
-			</view>
-		</view>
+			
+		</SpecList>
 		<!-- 分享 -->
 		<share 
 			ref="share" 
@@ -177,76 +144,40 @@
 
 <script>
 	import share from '@/components/share';
+	import SpecList from './common/SpecList';
 	export default{
 		components: {
-			share
+			share,
+			SpecList
 		},
 		data() {
 			return {
+				productid:null,
 				specClass: 'none',
 				specSelected:[],
 				goodsdata:{},
 				favorite: true,
 				shareList: [],
 				imgList: [],
-				specList: [{},{}],
+				specList: [],
 				specChildList: [
 					{
 						id: 1,
 						pid: 1,
 						name: 'XS',
 					},
-					{
-						id: 2,
-						pid: 1,
-						name: 'S',
-					},
-					{
-						id: 3,
-						pid: 1,
-						name: 'M',
-					},
-					{
-						id: 4,
-						pid: 1,
-						name: 'L',
-					},
-					{
-						id: 5,
-						pid: 1,
-						name: 'XL',
-					},
-					{
-						id: 6,
-						pid: 1,
-						name: 'XXL',
-					},
-					{
-						id: 7,
-						pid: 2,
-						name: '白色',
-					},
-					{
-						id: 8,
-						pid: 2,
-						name: '珊瑚粉',
-					},
-					{
-						id: 9,
-						pid: 2,
-						name: '草木绿',
-					},
+					
 				]
 			};
 		},
 		async onLoad(options){
 			
 			//接收传值,id里面放的是标题，因为测试数据并没写id 
-			let id = options.id;
-			if(id){
-				this.$api.msg(`点击了${id}`);
-				this.getProduct(id)
-				this.getgoodsdata(id)
+			this.productid= options.id;
+			if(this.productid){
+				this.$api.msg(`点击了${this.productid}`);
+				this.getProduct(this.productid)
+				this.getgoodsdata(this.productid)
 			}
 			//规格 默认选中第一条
 			// this.specList.forEach(item=>{
@@ -656,70 +587,9 @@
 		}
 	}
 	
-	/* 规格选择弹窗 */
-	.attr-content{
-		padding: 10upx 30upx;
-		.a-t{
-			display: flex;
-			image{
-				width: 170upx;
-				height: 170upx;
-				flex-shrink: 0;
-				margin-top: -40upx;
-				border-radius: 8upx;;
-			}
-			.right{
-				display: flex;
-				flex-direction: column;
-				padding-left: 24upx;
-				font-size: $font-sm + 2upx;
-				color: $font-color-base;
-				line-height: 42upx;
-				.price{
-					font-size: $font-lg;
-					color: $uni-color-primary;
-					margin-bottom: 10upx;
-				}
-				.selected-text{
-					margin-right: 10upx;
-				}
-			}
-		}
-		.attr-list{
-			display: flex;
-			flex-direction: column;
-			font-size: $font-base + 2upx;
-			color: $font-color-base;
-			padding-top: 30upx;
-			padding-left: 10upx;
-		}
-		.item-list{
-			padding: 20upx 0 0;
-			display: flex;
-			flex-wrap: wrap;
-			text{
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				background: #eee;
-				margin-right: 20upx;
-				margin-bottom: 20upx;
-				border-radius: 100upx;
-				min-width: 60upx;
-				height: 60upx;
-				padding: 0 20upx;
-				font-size: $font-base;
-				color: $font-color-dark;
-			}
-			.selected{
-				background: #fbebee;
-				color: $uni-color-primary;
-			}
-		}
-	}
-	
 	/*  弹出层 */
 	.popup {
+		
 		position: fixed;
 		left: 0;
 		top: 0;
@@ -730,31 +600,24 @@
 		&.show {
 			display: block;
 			.mask{
-				animation: showPopup 0.2s linear both;
+				animation: showPopup 01.2s linear both;
 			}
 			.layer {
-				animation: showLayer 0.2s linear both;
+				animation: showLayer 01.2s linear both;
 			}
 		}
 		&.hide {
 			.mask{
-				animation: hidePopup 0.2s linear both;
+				animation: hidePopup 01.2s linear both;
 			}
 			.layer {
-				animation: hideLayer 0.2s linear both;
+				animation: hideLayer 01.2s linear both;
 			}
 		}
 		&.none {
 			display: none;
 		}
-		.mask{
-			position: fixed;
-			top: 0;
-			width: 100%;
-			height: 100%;
-			z-index: 1;
-			background-color: rgba(0, 0, 0, 0.4);
-		}
+		
 		.layer {
 			position: fixed;
 			z-index: 99;
