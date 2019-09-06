@@ -47,9 +47,12 @@
 		<view class="c-list">
 			<view class="c-row b-b" @click="toggleSpec">
 				<text class="tit">购买类型</text>
-				<view class="con">
-					<text class="selected-text" v-for="(sItem, sIndex) in specSelected" :key="sIndex">
-						{{sItem.name}}
+				<view class="con" v-if="selectsku">
+					<text class="selected-text">
+						{{selectsku.sp1}}
+					</text>
+					<text class="selected-text">
+						{{selectsku.sp2}}
 					</text>
 				</view>
 				<text class="yticon icon-you"></text>
@@ -121,7 +124,7 @@
 			
 			<view class="action-btn-group">
 				<button type="primary" class=" action-btn no-border buy-now-btn" @click="buy">立即购买</button>
-				<button type="primary" class=" action-btn no-border add-cart-btn" @click="addcar" >加入购物车</button>
+				<button type="primary" class=" action-btn no-border add-cart-btn" @click="showaddcar" >加入购物车</button>
 			</view>
 		</view>
 
@@ -131,7 +134,7 @@
 		:class="specClass"
 		:productid="productid"
 		:product="goodsdata"
-		v-on:click="addcar(selectsku)"
+		@addcar="addcar"
 		>
 			
 		</SpecList>
@@ -162,14 +165,7 @@
 				shareList: [],
 				imgList: [],
 				specList: [],
-				specChildList: [
-					{
-						id: 1,
-						pid: 1,
-						name: 'XS',
-					},
-					
-				]
+				selectsku:null,
 			};
 		},
 		async onLoad(options){
@@ -221,11 +217,34 @@
 					　　				})
 			},
 			stopPrevent(){},
+			showaddcar(){
+				this.toggleSpec();
+			},
 			addcar(selectsku){
-				console.log(JSON.stringify(selectsku));
+				
+				this.selectsku = selectsku;
+				this.$request.senddata('/cart/add/', 'POST',{
+									  "price": 0,
+									  "productId": this.goodsdata.id,
+									  "productSkuCode": this.selectsku.skuCode,
+									  "productSkuId": this.selectsku.id,
+									  "quantity": 1,
+									  "sp1": this.selectsku.sp1,
+									  "sp2": this.selectsku.sp2,
+				
+									}).then(res => {
+										if(res.code == 200){
+											this.$api.msg("加入成功");
+										}else{
+											this.$api.msg(res.data);
+										}
+									}).catch(parmas => {
+										uni.hideLoading()
+										this.$api.msg("出错了"+JSON.stringify(parmas));
+					　　				})
+
 			}
 		},
-
 	}
 </script>
 

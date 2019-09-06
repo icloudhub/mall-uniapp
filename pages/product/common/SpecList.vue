@@ -8,8 +8,8 @@
 			<view class="a-t">
 				<image :src="selectsku.pic"></image>
 				<view class="right">
-					<text class="price">¥328.00</text>
-					<text class="stock">库存：188件</text>
+					<text class="price">¥{{selectsku.price}}</text>
+					<text class="stock">库存：{{selectsku.stock}}件</text>
 					<view class="selected">
 						已选：
 						<text class="selected-text">
@@ -103,6 +103,7 @@
 				
 			},
 			selectSpec(index, pid){
+				
 				let list = this.specChildList;
 				list.forEach(item=>{
 					if(item.pid === pid){
@@ -119,7 +120,6 @@
 			},
 			//立即购买
 			buynow(){
-				
 				this.$emit('buynow', this.selectsku);
 			},
 			// 获取商品规格
@@ -143,7 +143,6 @@
 							}
 						})
 						this.specChildList = chlist;
-						
 					}else{
 						this.$api.msg(res.data);
 					}
@@ -181,6 +180,8 @@
 				if(!this.selectsku.pic){
 					console.log(JSON.stringify(this.product))
 					this.selectsku.pic = this.product.pic.split(",")[0]
+					this.selectsku.price = this.product.price
+					
 				}
 				
 				

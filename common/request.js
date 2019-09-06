@@ -6,7 +6,13 @@ const PORT1 = '/baseinfo'
     
 request.senddata = (url, method, data) => {
 
-    headers["content-type"]='application/x-www-form-urlencoded'
+	if(url ==="/sso/passlogin" ){
+		headers["content-type"]='application/x-www-form-urlencoded'
+	}else{
+		headers["content-type"]='application/json;charset=UTF-8'
+	}
+    
+	
 	let userInfo = uni.getStorageSync('userInfo') || '';
 	if(userInfo.token){
 		headers['Authorization'] = userInfo.token
@@ -43,7 +49,7 @@ request.senddata = (url, method, data) => {
  
  request.searchdata = (url, method, data) => {
  	console.log(url)
-     headers["content-type"]='application/x-www-form-urlencoded'
+    headers["content-type"]='application/json;charset=UTF-8'
  	let userInfo = uni.getStorageSync('userInfo') || '';
  	if(userInfo.token){
  		headers['Authorization'] = userInfo.token

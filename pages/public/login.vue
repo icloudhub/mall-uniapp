@@ -94,7 +94,10 @@
 					username,
 					password
 				};
-				this.$request.senddata('/sso/passlogin','POST',sendData).then(res => {
+				this.$request.senddata('/sso/passlogin','POST',{
+					"username": username,
+					"password": password,
+				}).then(res => {
 					
 					this.logining = false;
 					if(res.code == 200){
